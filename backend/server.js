@@ -1,5 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 const bannerData = require('./bannerData')
 const logoData = require('./logoData')
 const dealData = require('./dealData')
@@ -38,13 +39,33 @@ app.get('/products', function(req,res){
 })
 
 app.post('/registration', function(req,res){
-    let userInfo = {
-        username: req.body.name,
-        email: req.body.email,
-        password: req.body.password
+    bcrypt.hash(req.body.password, 10, function(err, hash) {
+        let userInfo = {
+            username: req.body.name,
+            email: req.body.email,
+            password: hash
+        }
+        const user = new User(userInfo)
+        user.save()
+    });
+   
+})
+
+app.post('/login', async function(req,res){
+    const data = await User.find({email:req.body.email})
+    if(data[0]){
+        bcrypt.compare(req.body.password, data[0.].password, function(err, result) {
+            if(result){
+                res.send("login successfull")
+            }else{
+                res.send("Passwrod not match")
+
+            }
+        });
+       
+    }else{
+        res.send("data nai")
     }
-    const user = new User(userInfo)
-    user.save()
 })
 
 app.listen(8000,()=>{
